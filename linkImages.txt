@@ -1,0 +1,7 @@
+nebojsak11/eureka-server:latest
+nebojsak11/order-service:latest
+nebojsak11/user-service:latest
+nebojsak11/api-gateway:latest
+nebojsak11/config-server:latest
+nebojsak11/book-service:latest
+nebojsak11/mysql:latest

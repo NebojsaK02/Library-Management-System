@@ -1,0 +1,123 @@
+version: '3.8'
+services:
+  # MySQL baze
+  mysql-user:
+    image: mysql:8.0
+    container_name: mysql-user
+    environment:
+      MYSQL_ROOT_PASSWORD: HuaweiP10Lite
+      MYSQL_DATABASE: user_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-user-data:/var/lib/mysql
+
+  mysql-book:
+    image: mysql:8.0
+    container_name: mysql-book
+    environment:
+      MYSQL_ROOT_PASSWORD: HuaweiP10Lite
+      MYSQL_DATABASE: book_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-book-data:/var/lib/mysql
+
+  mysql-order:
+    image: mysql:8.0
+    container_name: mysql-order
+    environment:
+      MYSQL_ROOT_PASSWORD: HuaweiP10Lite
+      MYSQL_DATABASE: order_db
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-order-data:/var/lib/mysql
+
+  # Config Server
+  config-server:
+    image: config-server:1.0.0
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    volumes:
+      - C:/Users/neboj/OneDrive/Desktop/OBProjekat/gitrepo:/app/config-repo
+    depends_on:
+      - mysql-user
+      - mysql-book
+      - mysql-order
+
+  # Eureka Server
+  eureka-server:
+    image: eureka-server:1.0.0
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+
+  # User Service
+  user-service:
+    image: user-service:1.0.0
+    container_name: user-service
+    ports:
+      - "8000:8000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user:3306/user_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: HuaweiP10Lite
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+    depends_on:
+      - config-server
+      - eureka-server
+      - mysql-user
+
+  # Book Service
+  book-service:
+    image: book-service:1.0.0
+    container_name: book-service
+    ports:
+      - "8001:8001"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-book:3306/book_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: HuaweiP10Lite
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+    depends_on:
+      - config-server
+      - eureka-server
+      - mysql-book
+
+  # Order Service
+  order-service:
+    image: order-service:1.0.0
+    container_name: order-service
+    ports:
+      - "8002:8002"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-order:3306/order_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: HuaweiP10Lite
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+    depends_on:
+      - config-server
+      - eureka-server
+      - mysql-order
+
+  # API Gateway
+  api-gateway:
+    image: api-gateway:1.0.0
+    container_name: api-gateway
+    ports:
+      - "8765:8765"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+    depends_on:
+      - config-server
+      - eureka-server
+
+# Docker volumes za MySQL baze
+volumes:
+  mysql-user-data:
+  mysql-book-data:
+  mysql-order-data:
